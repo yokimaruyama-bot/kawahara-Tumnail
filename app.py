@@ -29,8 +29,8 @@ try:
 
     # 4. グラフの作成
     chart = alt.Chart(df).mark_image(
-        width=80,
-        height=50
+        width=160,
+        height=90
     ).encode(
         # :N にすることで日付の形式がバラバラでもとりあえず表示させます
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
@@ -39,7 +39,7 @@ try:
         tooltip=['投稿日', '再生数', 'クリック率','平均再生率']
     ).properties(
         width=800,
-        height=500
+        height=700
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
@@ -49,6 +49,7 @@ except FileNotFoundError:
 except Exception as e:
 
     st.error(f"予期せぬエラーが発生しました: {e}")
+
 
 
 
