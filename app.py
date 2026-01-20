@@ -46,4 +46,5 @@ try:
     # B. グラフの基本設定
     base = alt.Chart(df).encode(
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
-        y
+        
+
