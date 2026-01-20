@@ -35,7 +35,7 @@ try:
         # :N にすることで日付の形式がバラバラでもとりあえず表示させます
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
         y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
-        url='サムネイルURL',
+        url='サムネイル',
         tooltip=['投稿日', '再生数', 'クリック率','平均再生率']
     ).properties(
         width=800,
@@ -49,6 +49,7 @@ except FileNotFoundError:
 except Exception as e:
 
     st.error(f"予期せぬエラーが発生しました: {e}")
+
 
 
 
