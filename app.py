@@ -23,20 +23,20 @@ try:
         ["再生数", "クリック率", "平均再生率"]
     )
 
-    # --- ここからが「マウスオーバー拡大（プレビュー）」のコードです ---
+ # --- マウスオーバー時のみ表示する調整 ---
 
-    # A. マウスが乗っている場所を特定する設定
-    selection = alt.selection_point(on='mouseover', nearest=True, fields=['サムネイルURL'])
+    # A. マウスが乗っている場所を特定する設定（empty=False にすることで、何も選んでいない時は「空」にする）
+    selection = alt.selection_point(on='mouseover', nearest=True, fields=['サムネイルURL'], empty=False)
 
     # B. 共通の土台設定
     base = alt.Chart(df).encode(
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
         y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
-        url='サムネイル:N',
+        url='サムネイルURL:N',
         tooltip=['投稿日', '再生数', 'クリック率', '平均再生率']
     )
 
-    # C. メインのグラフ（画像は少し小さめ 100x56）
+    # C. メインのグラフ
     main_chart = base.mark_image(
         width=100, 
         height=56
@@ -44,23 +44,24 @@ try:
         selection
     ).properties(
         width=800,
-        height=450,
-        title="グラフ上の画像にマウスを乗せてください"
+        height=450
     )
 
-    # D. 下に表示される拡大プレビュー（400x225 の大サイズ）
-    # マウスが乗っている画像だけをフィルタリングして表示します
+    # D. 下に表示される拡大プレビュー
+    # opacity（不透明度）を、selectionが有効な時は1（100%）、無効な時は0（透明）にします
     preview = base.mark_image(
         width=400, 
         height=225
-    ).transform_filter(
-        selection
+    ).encode(
+        opacity=alt.condition(selection, alt.value(1), alt.value(0))
     ).properties(
-        title="選択中のサムネイル拡大"
+        title="選択中のサムネイル拡大（マウスを乗せると表示されます）"
     )
 
-    # E. グラフとプレビューを縦（Vertical）に結合して表示
+    # E. グラフを結合して表示
     st.altair_chart(alt.vconcat(main_chart, preview), use_container_width=True)
+
 
 except Exception as e:
     st.error(f"予期せぬエラーが発生しました: {e}")
+
