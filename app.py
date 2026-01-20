@@ -44,11 +44,32 @@ try:
 
     st.altair_chart(chart, use_container_width=True)
 
+　　# 1. マウス選択（セレクション）の設定を追加
+selection = alt.selection_point(on='mouseover', nearest=True, fields=['サムネイルURL'])
+
+# 2. メインのグラフ（画像は少し小さめ）
+base = alt.Chart(df).encode(
+    x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
+    y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
+    url='サムネイルURL:N',
+    tooltip=['投稿日', '再生数', 'クリック率', '平均再生率']
+)
+
+chart = base.mark_image(width=60, height=34).add_params(selection)
+
+# 3. マウスを乗せた画像だけを大きく表示する「プレビュー」を定義
+# 透明度を調整して、選択したものだけ浮き出させることも可能
+preview = base.mark_image(width=400, height=225).transform_filter(selection)
+
+# 4. グラフを縦に並べて表示（メイングラフの下にデカい画像が出る）
+st.altair_chart(alt.vconcat(chart, preview), use_container_width=True)
+
 except FileNotFoundError:
     st.error("youtube_data.csv が見つかりません。app.pyと同じフォルダに置いてください。")
 except Exception as e:
 
     st.error(f"予期せぬエラーが発生しました: {e}")
+
 
 
 
