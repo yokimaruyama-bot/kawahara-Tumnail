@@ -2,66 +2,48 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+st.set_page_config(page_title="YouTube分析ダッシュボード", layout="wide")
+
 st.title("YouTube動画分析ダッシュボード")
 
 # 1. データの読み込み
+# CSVファイル名、またはウェブ公開したスプレッドシートのURLを入力してください
 DATA_SOURCE = 'youtube_data.csv' 
 
 try:
+    # データの読み込み
     df = pd.read_csv(DATA_SOURCE, encoding='utf-8-sig')
+    
+    # 列名の前後にある余計なスペースを削除
     df.columns = df.columns.str.strip()
 
-    # 2. 列名のチェック
+    # 2. 列名のチェック（「サムネイルURL」を「サムネイル」に変更済み）
     expected_cols = ['投稿日', 'サムネイル', '再生数', 'クリック率', '平均再生率']
-    if any(c not in df.columns for c in expected_cols):
-        st.error(f"CSVの列名を確認してください。必要列: {expected_cols}")
+    missing_cols = [c for c in expected_cols if c not in df.columns]
+
+    if missing_cols:
+        st.error(f"CSVの中に以下の列が見つかりません: {missing_cols}")
+        st.info(f"現在認識されている列名: {list(df.columns)}")
         st.stop()
 
-    # 3. 指標の選択
+    # 3. 指標の選択（縦軸）
     y_axis_choice = st.selectbox(
         "表示する指標（縦軸）を選んでください：",
         ["再生数", "クリック率", "平均再生率"]
     )
 
- # --- マウスオーバー時のみ表示する調整 ---
+    # --- グラフ作成：レイヤー方式（拡大画像が重なる設定） ---
 
-    # A. マウスが乗っている場所を特定する設定（empty=False にすることで、何も選んでいない時は「空」にする）
-    selection = alt.selection_point(on='mouseover', nearest=True, fields=['サムネイルURL'], empty=False)
+    # A. マウスオーバーの判定設定
+    # empty=Falseにすることで、マウスが乗っていない時は拡大画像を出さないようにします
+    selection = alt.selection_point(
+        on='mouseover', 
+        nearest=True, 
+        fields=['サムネイル'], 
+        empty=False
+    )
 
-    # B. 共通の土台設定
+    # B. グラフの基本設定
     base = alt.Chart(df).encode(
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
-        y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
-        url='サムネイルURL:N',
-        tooltip=['投稿日', '再生数', 'クリック率', '平均再生率']
-    )
-
-    # C. メインのグラフ
-    main_chart = base.mark_image(
-        width=100, 
-        height=56
-    ).add_params(
-        selection
-    ).properties(
-        width=800,
-        height=450
-    )
-
-    # D. 下に表示される拡大プレビュー
-    # opacity（不透明度）を、selectionが有効な時は1（100%）、無効な時は0（透明）にします
-    preview = base.mark_image(
-        width=400, 
-        height=225
-    ).encode(
-        opacity=alt.condition(selection, alt.value(1), alt.value(0))
-    ).properties(
-        title="選択中のサムネイル拡大（マウスを乗せると表示されます）"
-    )
-
-    # E. グラフを結合して表示
-    st.altair_chart(alt.vconcat(main_chart, preview), use_container_width=True)
-
-
-except Exception as e:
-    st.error(f"予期せぬエラーが発生しました: {e}")
-
+        y
