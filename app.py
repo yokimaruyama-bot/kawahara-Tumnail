@@ -13,7 +13,7 @@ try:
     df.columns = df.columns.str.strip()
 
     # 2. 列名のチェック（デバッグ用：エラー時に役立ちます）
-    expected_cols = ['投稿日', 'サムネイルURL', '再生数', 'クリック率']
+    expected_cols = ['投稿日', 'サムネイル', '再生数', 'クリック率']
     missing_cols = [c for c in expected_cols if c not in df.columns]
 
     if missing_cols:
@@ -49,6 +49,7 @@ except FileNotFoundError:
 except Exception as e:
 
     st.error(f"予期せぬエラーが発生しました: {e}")
+
 
 
 
