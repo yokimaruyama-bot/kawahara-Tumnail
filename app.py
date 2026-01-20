@@ -7,7 +7,6 @@ st.set_page_config(page_title="YouTube分析ダッシュボード", layout="wide
 st.title("YouTube動画分析ダッシュボード")
 
 # 1. データの読み込み
-# CSVファイル名、またはウェブ公開したスプレッドシートのURLを入力してください
 DATA_SOURCE = 'youtube_data.csv' 
 
 try:
@@ -17,7 +16,7 @@ try:
     # 列名の前後にある余計なスペースを削除
     df.columns = df.columns.str.strip()
 
-    # 2. 列名のチェック（「サムネイルURL」を「サムネイル」に変更済み）
+    # 2. 列名のチェック
     expected_cols = ['投稿日', 'サムネイル', '再生数', 'クリック率', '平均再生率']
     missing_cols = [c for c in expected_cols if c not in df.columns]
 
@@ -35,7 +34,6 @@ try:
     # --- グラフ作成：レイヤー方式（拡大画像が重なる設定） ---
 
     # A. マウスオーバーの判定設定
-    # empty=Falseにすることで、マウスが乗っていない時は拡大画像を出さないようにします
     selection = alt.selection_point(
         on='mouseover', 
         nearest=True, 
@@ -43,8 +41,45 @@ try:
         empty=False
     )
 
-    # B. グラフの基本設定
+    # B. グラフの基本設定（ここで途切れていました）
     base = alt.Chart(df).encode(
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
-        
+        y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
+        url='サムネイル:N',
+        tooltip=['投稿日', '再生数', 'クリック率', '平均再生率']
+    )
 
+    # C. メインのグラフ（通常のサムネイルサイズ）
+    main_chart = base.mark_image(
+        width=100, 
+        height=56
+    ).add_params(
+        selection
+    )
+
+    # D. 拡大用のレイヤー（マウスが乗った時だけ大きく表示）
+    upper_layer = base.mark_image(
+        width=250, 
+        height=140
+    ).transform_filter(
+        selection
+    )
+
+    # E. 2つのレイヤーを重ね合わせて表示
+    final_chart = alt.layer(
+        main_chart, 
+        upper_layer
+    ).properties(
+        width=900,
+        height=600,
+        title="サムネイルにマウスを乗せると拡大表示されます"
+    ).interactive()
+
+    st.altair_chart(final_chart, use_container_width=True)
+
+    st.info("💡 グラフ上でマウスホイールを動かすとズーム、ドラッグすると移動ができます。")
+
+except FileNotFoundError:
+    st.error(f"ファイル {DATA_SOURCE} が見つかりません。")
+except Exception as e:
+    st.error(f"予期せぬエラーが発生しました: {e}")
