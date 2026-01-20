@@ -24,7 +24,7 @@ try:
     # 3. 指標の選択
     y_axis_choice = st.selectbox(
         "表示する指標（縦軸）を選んでください：",
-        ["再生数", "クリック率"]
+        ["再生数", "クリック率","平均再生率"]
     )
 
     # 4. グラフの作成
@@ -36,7 +36,7 @@ try:
         x=alt.X('投稿日:N', title='投稿日', sort='ascending'),
         y=alt.Y(f'{y_axis_choice}:Q', title=y_axis_choice),
         url='サムネイルURL',
-        tooltip=['投稿日', '再生数', 'クリック率']
+        tooltip=['投稿日', '再生数', 'クリック率'、'平均再生率']
     ).properties(
         width=800,
         height=500
@@ -47,4 +47,5 @@ try:
 except FileNotFoundError:
     st.error("youtube_data.csv が見つかりません。app.pyと同じフォルダに置いてください。")
 except Exception as e:
+
     st.error(f"予期せぬエラーが発生しました: {e}")
